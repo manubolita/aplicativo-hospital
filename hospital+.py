@@ -418,7 +418,7 @@ def menu_pacientes(hospital):
         print("1. Añadir Paciente")
         print("2. Eliminar Paciente")
         print("3. Reservar Servicio")
-        print("4. Pagar Servicio")
+        print("4. Pagar Servicio*")
         print("5. Buscar Paciente por Número de Identificación")
         print("6. modificar historial clinico de un paciente")
         print("\n7. Guardar y Regresar al Menú Principal")
