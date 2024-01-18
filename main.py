@@ -151,9 +151,9 @@ def manejo_ventas():
             opcion =int(input('Elija una opción: '))
             match opcion:
                 case 1:
-                    manejo_productos()
+                    pass
                 case 2:
-                    manejo_ventas() 
+                    pass 
                 case 3:
                     pass
                 case 4:
