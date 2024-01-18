@@ -67,7 +67,7 @@ def menu_farmacia():
             print('---------------------------------')
             print('   1. Crear farmacia')
             print('   2. Manejo productos')
-            print('   3. Manejo ventas ')
+            print('   3. Manejo ventas*')
             print('')
             print('   4. SALIR')
             print('--------------------------------')
