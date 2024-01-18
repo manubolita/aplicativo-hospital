@@ -1,0 +1,854 @@
+import pickle
+import os
+class FARMACO:
+    def __init__(self,nombre,id_producto,valor,cantidad):
+        self.nombre=nombre
+        self.id_producto=id_producto
+        self.valor=valor
+        self.cantidad=cantidad
+    def __str__(self):
+        return (f"Nombre producto {self.nombre}, Id producto {self.id_producto}, valor producto {self.valor}, cantidad inventario {self.cantidad}")
+class FARMACIA:
+    numeroFactura=0
+    dinerocaja=0
+    id_producto=0
+    def __init__(self,productos,factura):
+        self.productos=productos
+        self.factura=factura
+        self.id_producto=1
+
+    def guardar_productos(self):
+        with open('productos.pickle', 'wb') as f:
+            pickle.dump(self.productos, f)
+
+    def registrar_producto(self):
+        while True:
+            nombre= input("digite el nombre del producto ---> ")
+            if self.buscar_producto(nombre)!=False:
+                print("El producto ya existe, imposible agregar producto... ")
+            else:
+                id_producto = self.id_producto
+                self.id_producto+=1
+                valor= float(input("Ingrese valor del producto ---> "))
+                cantidad=int(input("Cuantas unidades tiene? ---> "))
+                producto=FARMACO(nombre,id_producto,valor,cantidad)
+                print(f"Producto ---> {producto}")
+                self.adicionar_producto(producto)
+                self.guardar_productos()
+                print("producto ingresado correctamente")
+            salir = input('Presione cualquier tecla para salir, o ingrese 1 para continuar: ')
+            if salir != '1':
+                break
+    def buscar_producto(self,nombre):
+        for p in self.productos:
+            if p.nombre == nombre:
+                return p
+        else:
+            return False
+    
+    def adicionar_producto(self,producto):
+        self.productos.append(producto)
+
+    def mostrar_productos(self):
+        if len(self.productos)>0:
+            print("\nLista de Productos\n---------------------")
+            for i in range (len(self.productos)):
+                print(f"{i+1} - {self.productos[i]}")
+        else:
+            print("No hay productos disponibles.")
+    
+    def pedir_producto(self):
+        nombre= input("Ingrese el nombre del producto que desea pedir: ")
+        if self.buscar_producto(nombre)== False:
+            print(f'No se ha encontrado un producto con el nombre: {nombre}')
+        else:
+            producto = self.buscar_producto(nombre)
+            cantidad_pedir= int(input("Ingrese la cantidad que desea pedir: "))
+            if cantidad_pedir>0:
+                producto.cantidad+= cantidad_pedir
+                print (f"Se han agrgado {cantidad_pedir} unidades del producto {nombre} al inventario.")
+            else:
+                print("La cantidad debe ser mayor a cero. ")
+        os.system('pause')
+class Persona:
+    def __init__(self, nombre, numero_identificacion):
+        self.nombre = nombre
+        self.numero_identificacion = numero_identificacion
+
+class HistoriaClinica:
+    def __init__(self):
+        self.alergias = []
+        self.enfermedades_actuales = []
+        self.medicamentos_recetados = []
+
+class Paciente(Persona):
+    pacientes_registrados = set()
+
+    def __init__(self, nombre, numero_identificacion,hospital):
+        super().__init__(nombre, numero_identificacion)
+        if numero_identificacion in Paciente.pacientes_registrados:
+            raise ValueError("Ya existe un paciente con ese número de identificación.")
+        Paciente.pacientes_registrados.add(numero_identificacion)
+        self.historia_clinica = HistoriaClinica()
+        self.servicios_reservados=[]
+        self.hospital=hospital
+
+    def agregar_alergia(self, alergia):
+        self.historia_clinica.alergias.append(alergia)
+
+    def agregar_enfermedad_actual(self, enfermedad):
+        self.historia_clinica.enfermedades_actuales.append(enfermedad)
+
+    def agregar_medicamento_recetado(self, medicamento):
+        self.historia_clinica.medicamentos_recetados.append(medicamento)
+
+    def reservar_servicio(self, servicio,hospital):
+        if servicio in [s.nombre for s in hospital.servicios]: 
+            self.servicios_reservados.append(servicio)
+            print(f"Servicio '{servicio}' reservado exitosamente para el paciente {self.nombre}.")
+        else:
+            print(f"Servicio '{servicio}' reservado exitosamente para el paciente.")
+            #print(f"No se encontró el servicio '{servicio}' en el hospital.")
+
+    def pagar_servicios(self):
+        total_a_pagar = sum(servicio.costo for servicio in self.servicios_reservados)
+        print(f"Total a pagar: ${total_a_pagar:.2f}")
+        self.servicios_reservados = []
+        print("Servicios pagados con éxito.")
+
+class Medico(Persona):
+    medicos_registrados = set()
+
+    def __init__(self, nombre, numero_identificacion, especialidad):
+        super().__init__(nombre, numero_identificacion)
+        if numero_identificacion in Medico.medicos_registrados:
+            raise ValueError("Ya existe un médico con ese número de identificación.")
+        Medico.medicos_registrados.add(numero_identificacion)
+        self.especialidad = especialidad
+        self.paciente_asignado = None
+
+    def asignar_paciente(self, paciente):
+        self.paciente_asignado = paciente
+
+    def reservar_cita_medica(self):
+        if self.paciente_asignado:
+            print(f"Cita médica reservada para el paciente {self.paciente_asignado.nombre}.")
+        else:
+            print("No hay paciente asignado. No se puede reservar cita médica.")
+
+    def finalizar_cita_medica(self):
+        if self.paciente_asignado:
+            print(f"Cita médica finalizada para el paciente {self.paciente_asignado.nombre}.")
+            self.paciente_asignado = None
+        else:
+            print("No hay cita médica en curso.")
+
+class Enfermera(Persona):
+    enfermeras_registradas = set()
+
+    def __init__(self, nombre, numero_identificacion, area):
+        super().__init__(nombre, numero_identificacion)
+        if numero_identificacion in Enfermera.enfermeras_registradas:
+            raise ValueError("Ya existe una enfermera con ese número de identificación.")
+        Enfermera.enfermeras_registradas.add(numero_identificacion)
+        self.area = area
+        self.paciente_asignado = None
+        
+    def asignar_paciente(self, paciente):
+        self.paciente_asignado = paciente
+
+    def dejar_libre(self):
+        if self.paciente_asignado:
+            print(f"Enfermera liberada. El paciente {self.paciente_asignado.nombre} ha sido atendido.")
+            self.paciente_asignado = None
+        else:
+            print("La enfermera ya está libre.")
+
+class Servicio:
+    def __init__(self, nombre, costo):
+        self.nombre = nombre
+        self.costo = costo
+
+class Hospital:
+    def __init__(self):
+        self.personas = []
+        self.servicios = []
+
+    def agregar_persona(self, persona):
+        self.personas.append(persona)
+
+    def agregar_servicio(self, servicio):
+        self.servicios.append(servicio)
+
+    def obtener_paciente_por_id(self, id_paciente):
+        for persona in self.personas:
+            if isinstance(persona, Paciente) and persona.numero_identificacion == id_paciente:
+                return persona
+        return None
+
+    def obtener_persona_por_id(self, id_persona, tipo_persona):
+        for persona in self.personas:
+            if isinstance(persona, tipo_persona) and persona.numero_identificacion == id_persona:
+                return persona
+        return None
+    
+    def persona_existente(self, persona):
+        return any(persona.numero_identificacion == p.numero_identificacion for p in self.personas)
+    
+    def guardar_informacion(self, archivo):
+        with open(archivo, 'wb') as f:
+            pickle.dump({'personas': self.personas, 'servicios': self.servicios}, f)
+
+    def cargar_informacion(self, archivo):
+        try:
+            with open(archivo, 'rb') as f:
+                data = pickle.load(f)
+                self.personas = data.get('personas', [])
+                self.servicios = data.get('servicios', [])
+                print("Información cargada exitosamente.")
+        except FileNotFoundError:
+            print("Archivo no encontrado. Creando uno nuevo.")
+    def mostrar_servicios(self):
+        print("\n***** Lista de Servicios *****")
+        for servicio in self.servicios:
+            print(f"Servicio - Nombre: {servicio.nombre}, Costo: ${servicio.costo:.2f}")
+
+    def mostrar_servicios_pacientes(self):
+        print("\n***** Lista de Servicios Reservados por Pacientes *****")
+        for persona in self.personas:
+            if isinstance(persona, Paciente) and hasattr(persona, 'servicios_reservados') and persona.servicios_reservados:
+                print(f"Paciente - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}")
+                for servicio in persona.servicios_reservados:
+                    print(f"  Servicio Reservado - Nombre: {servicio.nombre}, Costo: ${servicio.costo:.2f}")
+
+    def solicitar_servicio_paciente(self):
+        id_paciente = input("Ingrese el número de identificación del paciente: ")
+        paciente = self.obtener_paciente_por_id(id_paciente)
+        if paciente:
+            self.mostrar_servicios()
+            nombre_servicio = input("Ingrese el nombre del servicio a reservar: ")
+            servicio = next((s for s in self.servicios if s.nombre == nombre_servicio), None)
+            if servicio:
+                paciente.reservar_servicio(servicio)
+                print(f"Servicio '{servicio.nombre}' reservado exitosamente para el paciente {paciente.nombre}.")
+            else:
+                print("Servicio no encontrado.")
+        else:
+            print("Paciente no encontrado.")
+
+    def servicio_existente(self, servicio):
+        """Devuelve True si el servicio ya existe en el hospital, de lo contrario False."""
+        return any(servicio.nombre == existing_servicio.nombre for existing_servicio in self.servicios)
+    
+    def eliminar_servicio(self):
+        self.mostrar_servicios()
+        nombre_servicio = input("Ingrese el nombre del servicio a eliminar: ")
+        servicio = next((s for s in self.servicios if s.nombre == nombre_servicio), None)
+        if servicio:
+            self.servicios.remove(servicio)
+            print(f"Servicio '{servicio.nombre}' eliminado exitosamente.")
+        else:
+            print("Servicio no encontrado.")
+    def guardar_informacion(self, archivo):
+        with open(archivo, 'wb') as f:
+            pickle.dump({'personas': self.personas, 'servicios': self.servicios}, f)
+
+    def cargar_informacion(self, archivo):
+        try:
+            with open(archivo, 'rb') as f:
+                data = pickle.load(f)
+                self.personas = data.get('personas', [])
+                self.servicios = data.get('servicios', [])
+                print("Información cargada exitosamente.")
+        except FileNotFoundError:
+            print("Archivo no encontrado. Creando uno nuevo.")
+
+def menu_servicios(hospital):
+    archivo_servicios = 'servicios_data.pkl'
+
+    # Cargar información al inicio del menú de servicios
+    hospital.cargar_informacion(archivo_servicios)
+    os.system("pause")
+    os.system("cls")
+    while True:
+        os.system("cls")
+        print("\n***** Menú Servicios *****")
+        print("1. Agregar Servicio")
+        print("2. Eliminar Servicio")
+        print("3. Solicitar Servicio por Paciente")
+        print("4. Mostrar Servicios Reservados por Pacientes")
+        print("5. Mostrar Lista de Servicios")
+        print("6. Guardar y Regresar al Menú Principal")
+        print("0. Regresar al Menú Principal")
+
+        opcion = input("Ingrese la opción: ")
+
+        if opcion == "1":
+            nombre_servicio = input("Ingrese el nombre del servicio: ")
+            costo_servicio = float(input("Ingrese el costo del servicio: "))
+            nuevo_servicio = Servicio(nombre_servicio, costo_servicio)
+            if not hospital.servicio_existente(nuevo_servicio):  
+                hospital.agregar_servicio(nuevo_servicio)
+                print("Servicio agregado exitosamente.")
+            else:
+                print("El servicio ya se encuentra en el hospital")
+            os.system("pause")
+
+        elif opcion == "2":
+            hospital.eliminar_servicio()
+            os.system("pause")
+
+        elif opcion == "3":
+            hospital.solicitar_servicio_paciente()
+            os.system("pause")
+
+        elif opcion == "4":
+            hospital.mostrar_servicios_pacientes()
+            os.system("pause")
+
+        elif opcion == "5":
+            hospital.mostrar_servicios()
+            os.system("pause")
+
+        elif opcion == "6":
+            # Guardar información y salir del menú de servicios
+            hospital.guardar_informacion(archivo_servicios)
+            print("Información guardada exitosamente. Regresando al Menú Principal.")
+            os.system("pause")
+            break
+
+        elif opcion == "0":
+            # Regresar al Menú Principal sin guardar
+            print("Regresando al Menú Principal.")
+            os.system("pause")
+            break
+
+        else:
+            print("Opción no válida. Intente de nuevo.")
+            os.system("pause")
+
+def menu_medicos_enfermeras(hospital):
+    archivo_medicos = 'medicos_data.pkl'
+
+    # Cargar información al inicio del menú de médicos
+    hospital.cargar_informacion(archivo_medicos)
+    os.system("pause")
+    os.system("cls")
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("***** Menú Médicos *****\n")
+        print("1.   Registrar Médico")
+        print("2.   Eliminar Médico")
+        print("3.   Asignar Paciente y Reservar Cita Médica")
+        print("4.   Finalizar Cita Médica")
+        print("5.   Asignar Enfermera a Paciente Hospitalizado")
+        print("6.   Liberar Enfermera")
+        print("7.   Registrar Enfermera")
+        print("8.   Eliminar Enfermera")
+        print("9.   Mostrar medicos y su disponibilidad")
+        print("10.  Mostrar enfermeras y su disponibilidad")
+        print("\n11.  Guardar y Regresar al Menú Principal")
+        print("0.   Regresar al Menú Principal")
+
+        opcion = input("\nIngrese la opción: ")
+
+        if opcion == "1":
+            nombre = input("Ingrese el nombre del médico: ")
+            numero_identificacion = input("Ingrese el número de identificación del médico: ")
+            especialidad = input("Ingrese la especialidad del médico: ")
+            medico = Medico(nombre, numero_identificacion, especialidad)
+            hospital.agregar_persona(medico)
+            print("Médico registrado exitosamente.")
+            os.system("pause")
+
+        elif opcion == "2":
+            id_medico = input("Ingrese el número de identificación del médico a eliminar: ")
+            medico = hospital.obtener_persona_por_id(id_medico, Medico)
+            if medico:
+                hospital.personas.remove(medico)
+                print("Médico eliminado exitosamente.")
+            else:
+                print("Médico no encontrado.")
+            os.system("pause")
+
+        elif opcion == "3":
+            id_medico = input("Ingrese el número de identificación del médico: ")
+            medico = hospital.obtener_persona_por_id(id_medico, Medico)
+            if medico:
+                id_paciente = input("Ingrese el número de identificación del paciente: ")
+                paciente = hospital.obtener_paciente_por_id(id_paciente)
+                if paciente:
+                    medico.asignar_paciente(paciente)
+                    medico.reservar_cita_medica()
+                    print(f"Paciente asignado al médico {medico.nombre}.")
+                else:
+                    print("Paciente no encontrado.")
+                    
+            else:
+                print("Médico no encontrado.")
+            os.system("pause")
+        elif opcion == "4":
+            id_medico = input("Ingrese el número de identificación del médico: ")
+            medico = hospital.obtener_persona_por_id(id_medico, Medico)
+            if medico:
+                medico.finalizar_cita_medica()
+            else:
+                print("Médico no encontrado.")
+            os.system("pause")
+        elif opcion == "5":
+            id_medico = input("Ingrese el número de identificación del médico: ")
+            medico = hospital.obtener_persona_por_id(id_medico, Medico)
+            if medico:
+                id_paciente = input("Ingrese el número de identificación del paciente: ")
+                paciente = hospital.obtener_paciente_por_id(id_paciente)
+                if paciente:
+                    id_enfermera = input("Ingrese el número de identificación de la enfermera: ")
+                    enfermera = hospital.obtener_persona_por_id(id_enfermera, Enfermera)
+                    if enfermera:
+                        enfermera.asignar_paciente(paciente)
+                        print(f"Enfermera asignada al paciente {paciente.nombre}.")
+                    else:
+                        print("Enfermera no encontrada.")
+                else:
+                    print("Paciente no encontrado.")
+            else:
+                print("Médico no encontrado.")
+            os.system("pause")
+
+        elif opcion == "6":
+            id_enfermera = input("Ingrese el número de identificación de la enfermera: ")
+            enfermera = hospital.obtener_persona_por_id(id_enfermera, Enfermera)
+            if enfermera:
+                enfermera.dejar_libre()
+            else:
+                print("Enfermera no encontrada.")
+            os.system("pause")
+
+        elif opcion == "7":
+            nombre = input("Ingrese el nombre de la enfermera: ")
+            numero_identificacion = input("Ingrese el número de identificación de la enfermera: ")
+            area = input("Ingrese el área de la enfermera: ")
+            enfermera = Enfermera(nombre, numero_identificacion, area)
+            hospital.agregar_persona(enfermera)
+            print("Enfermera registrada exitosamente.")
+            os.system("pause")
+
+        elif opcion == "8":
+            id_enfermera = input("Ingrese el número de identificación de la enfermera a eliminar: ")
+            enfermera = hospital.obtener_persona_por_id(id_enfermera, Enfermera)
+            if enfermera:
+                hospital.personas.remove(enfermera)
+                print("Enfermera eliminada exitosamente.")
+            else:
+                print("Enfermera no encontrada.")
+            os.system("pause")
+
+        elif opcion == "11":
+            # Guardar información y salir del menú de médicos
+            hospital.guardar_informacion(archivo_medicos)
+            print("Información guardada exitosamente. Regresando al Menú Principal.")
+            os.system("pause")
+            break
+        elif opcion == "9":
+            # Mostrar lista de médicos con pacientes asignados
+            print("\n***** Lista de Médicos con Pacientes Asignados *****")
+            for persona in hospital.personas:
+                if isinstance(persona, Medico):
+                    asignado = persona.paciente_asignado.nombre if persona.paciente_asignado else "Ninguno"
+                    print(f"Médico - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}, Especialidad: {persona.especialidad}, Paciente Asignado: {asignado}")
+            os.system("pause")
+        elif opcion == "10":
+            # Mostrar lista de enfermeras con pacientes asignados
+            print("\n***** Lista de Enfermeras con Pacientes Asignados *****")
+            for persona in hospital.personas:
+                if isinstance(persona, Enfermera):
+                    asignado = persona.paciente_asignado.nombre if persona.paciente_asignado else "Ninguno"
+                    print(f"Enfermera - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}, Área: {persona.area}, Paciente Asignado: {asignado}")
+            os.system("pause")
+        elif opcion == "0":
+            # Regresar al Menú Principal sin guardar
+            print("advertencia: No se guardaran los datos")
+            print("Regresando al Menú Principal.")
+            os.system("pause")
+            break
+
+        else:
+            print("Opción no válida. Intente de nuevo.")
+            os.system("pause")
+    
+def menu_pacientes(hospital):
+    archivo_pacientes = 'pacientes_data.pkl'
+    os.system("cls")
+    # Cargar información al inicio del menú de pacientes
+    hospital.cargar_informacion(archivo_pacientes)
+    os.system("pause")
+    while True:
+        os.system("cls")
+        print("***** Menú Pacientes *****\n")
+        print("1. Añadir Paciente")
+        print("2. Eliminar Paciente")
+        print("3. Reservar Servicio")
+        print("4. Pagar Servicio")
+        print("5. Buscar Paciente por Número de Identificación")
+        print("6. modificar historial clinico de un paciente")
+        print("\n7. Guardar y Regresar al Menú Principal")
+        print("0. Regresar al Menú Principal")
+
+        opcion = input("\nIngrese la opción: ")
+
+        #añadir paciente
+        if opcion == "1":
+            # Añadir Paciente
+            nombre = input("Ingrese el nombre del paciente: ")
+            numero_identificacion = input("Ingrese el número de identificación del paciente: ")
+            paciente = Paciente(nombre, numero_identificacion, hospital)
+            paciente.hospital=hospital
+            os.system("pause")
+            while True:
+                os.system("cls")
+                # Submenú para gestionar historia clínica
+                print("\n***** Historia Clínica *****")
+                print("1. Añadir Alergia")
+                print("2. Añadir Enfermedad Actual")
+                print("3. Añadir Medicamento Recetado")
+                print("0. Finalizar y Regresar")
+
+                opcion_historia = input("Ingrese la opción de la historia clínica: ")
+
+                if opcion_historia == "1":
+                    alergia = input("Ingrese la alergia: ")
+                    paciente.historia_clinica.alergias.append(alergia)
+                    print("Alergia añadida exitosamente.")
+                    os.system("pause")
+                elif opcion_historia == "2":
+                    enfermedad = input("Ingrese la enfermedad actual: ")
+                    paciente.historia_clinica.enfermedades_actuales.append(enfermedad)
+                    print("Enfermedad actual añadida exitosamente.")
+                    os.system("pause")
+                elif opcion_historia == "3":
+                    medicamento = input("Ingrese el medicamento recetado: ")
+                    paciente.historia_clinica.medicamentos_recetados.append(medicamento)
+                    print("Medicamento recetado añadido exitosamente.")
+                    os.system("pause")
+                elif opcion_historia == "0":
+                    # Salir del submenú de historia clínica
+                    os.system("pause")
+                    break
+                else:
+                    print("Opción no válida. Intente de nuevo.")
+                    os.system("pause")
+
+            # Agregar el paciente al hospital
+            hospital.agregar_persona(paciente)
+            print("Paciente añadido exitosamente.")
+            os.system("pause")
+        #eliminar paciente
+        elif opcion == "2":
+            id_paciente = input("Ingrese el número de identificación del paciente a eliminar: ")
+            paciente = hospital.obtener_paciente_por_id(id_paciente)
+            if paciente:
+                hospital.personas.remove(paciente)
+                print("Paciente eliminado exitosamente.")
+                os.system("pause")
+            else:
+                print("Paciente no encontrado.")
+                os.system("pause")
+        #reservar servicio
+        elif opcion == "3":
+            id_paciente = input("Ingrese el número de identificación del paciente: ")
+            paciente = hospital.obtener_paciente_por_id(id_paciente)
+            if paciente:
+                servicio = input("\nIngrese el nombre del servicio a reservar: ")
+                paciente.reservar_servicio(servicio,hospital)
+                os.system("pause")
+            else:
+                print("\nPaciente no encontrado.")
+        #pagar servicio
+        elif opcion == "4":
+            id_paciente = input("Ingrese el número de identificación del paciente: ")
+            paciente = hospital.obtener_paciente_por_id(id_paciente)
+            if paciente:
+                servicio = input("Ingrese el nombre del servicio a pagar: ")
+                for ser in hospital.servicios:
+                    if servicio == ser.nombre:
+                        paciente.pagar_servicio(servicio)
+                        print(f"Servicio '{servicio}' pagado exitosamente por el paciente {paciente.nombre}.")
+                    else:
+                        print("No se ha encontrado el servicio")
+                        break
+            else:
+                print("Paciente no encontrado.")
+
+        elif opcion == "5":
+            id_busqueda = input("Ingrese el número de identificación del paciente a buscar: ")
+            paciente = hospital.obtener_paciente_por_id(id_busqueda)
+            if paciente:
+                print(f"Resultado de la búsqueda: Paciente - Nombre: {paciente.nombre}, ID: {paciente.numero_identificacion}")
+                # Mostrar historial clínico
+                print("\n***** Historial Clínico *****")
+                print("Alergias:", ', '.join(paciente.historia_clinica.alergias))
+                print("Enfermedades Actuales:", ', '.join(paciente.historia_clinica.enfermedades_actuales))
+                print("Medicamentos Recetados:", ', '.join(paciente.historia_clinica.medicamentos_recetados))
+                os.system("pause")
+            else:
+                print("Paciente no encontrado.")
+                os.system("pause")
+        elif opcion == "6":
+            # Modificar Historial Clínico
+            id_paciente = input("Ingrese el número de identificación del paciente: ")
+            paciente = hospital.obtener_paciente_por_id(id_paciente)
+            if paciente:
+                while True:
+                    # Submenú para modificar historia clínica
+                    print("\n***** Modificar Historial Clínico *****")
+                    print("1. Añadir Alergia")
+                    print("2. Añadir Enfermedad Actual")
+                    print("3. Añadir Medicamento Recetado")
+                    print("4. Eliminar Alergia")
+                    print("5. Eliminar Enfermedad Actual")
+                    print("6. Eliminar Medicamento Recetado")
+                    print("0. Finalizar y Regresar")
+
+                    opcion_historia = input("Ingrese la opción de la historia clínica a modificar: ")
+
+                    if opcion_historia == "1":
+                        alergia = input("Ingrese la alergia: ")
+                        paciente.historia_clinica.alergias.append(alergia)
+                        print("\nAlergia añadida exitosamente.")
+                        os.system("pause")
+                    elif opcion_historia == "2":
+                        enfermedad = input("Ingrese la enfermedad actual: ")
+                        paciente.historia_clinica.enfermedades_actuales.append(enfermedad)
+                        print("\nEnfermedad actual añadida exitosamente.")
+                        os.system("pause")
+                    elif opcion_historia == "3":
+                        medicamento = input("Ingrese el medicamento recetado: ")
+                        paciente.historia_clinica.medicamentos_recetados.append(medicamento)
+                        print("\nMedicamento recetado añadido exitosamente.")
+                        os.system("pause")
+                    elif opcion_historia == "4":
+                        if paciente.historia_clinica.alergias:
+                            print("Alergias actuales:", ', '.join(paciente.historia_clinica.alergias))
+                            alergia_eliminar = input("Ingrese la alergia a eliminar: ")
+                            if alergia_eliminar in paciente.historia_clinica.alergias:
+                                paciente.historia_clinica.alergias.remove(alergia_eliminar)
+                                print("\nAlergia eliminada exitosamente.")
+                                os.system("pause")
+                            else:
+                                print("La alergia no se encuentra en el historial clínico.")
+                                os.system("pause")
+                        else:
+                            print("No hay alergias registradas en el historial clínico.")
+                            os.system("pause")
+                    elif opcion_historia == "5":
+                        if paciente.historia_clinica.enfermedades_actuales:
+                            print("Enfermedades actuales:", ', '.join(paciente.historia_clinica.enfermedades_actuales))
+                            enfermedad_eliminar = input("Ingrese la enfermedad actual a eliminar: ")
+                            if enfermedad_eliminar in paciente.historia_clinica.enfermedades_actuales:
+                                paciente.historia_clinica.enfermedades_actuales.remove(enfermedad_eliminar)
+                                print("Enfermedad actual eliminada exitosamente.")
+                                os.system("pause")
+                            else:
+                                print("La enfermedad actual no se encuentra en el historial clínico.")
+                                os.system("pause")
+                        else:
+                            print("No hay enfermedades actuales registradas en el historial clínico.")
+                            os.system("pause")
+                    elif opcion_historia == "6":
+                        if paciente.historia_clinica.medicamentos_recetados:
+                            print("Medicamentos recetados actuales:", ', '.join(paciente.historia_clinica.medicamentos_recetados))
+                            medicamento_eliminar = input("Ingrese el medicamento recetado a eliminar: ")
+                            if medicamento_eliminar in paciente.historia_clinica.medicamentos_recetados:
+                                paciente.historia_clinica.medicamentos_recetados.remove(medicamento_eliminar)
+                                print("Medicamento recetado eliminado exitosamente.")
+                                os.system("pause")
+                            else:
+                                print("El medicamento recetado no se encuentra en el historial clínico.")
+                                os.system("pause")
+                        else:
+                            print("No hay medicamentos recetados registrados en el historial clínico.")
+                            os.system("pause")
+                    elif opcion_historia == "0":
+                        # Salir del submenú de modificar historia clínica
+                        os.system("pause")
+                        break
+                    else:
+                        print("Opción no válida. Intente de nuevo.")
+                        os.system("pause")
+            else:
+                print("Paciente no encontrado.")
+                os.system("pause")
+        elif opcion == "7":
+            # Guardar información y salir del menú de pacientes
+            hospital.guardar_informacion(archivo_pacientes)
+            print("Información guardada exitosamente. Regresando al Menú Principal.")
+            os.system("pause")
+            break
+
+        elif opcion == "0":
+            # Regresar al Menú Principal sin guardar
+
+            print("Regresando al Menú Principal.")
+            os.system("pause")
+            break
+
+        else:
+            print("Opción no válida. Intente de nuevo.")
+            os.system("pause")
+
+def menu_principal():
+    os.system("cls")
+    hospital = Hospital()
+    archivo_hospital = 'hospital_data.pkl'
+
+    # Cargar información al inicio del programa principal
+    hospital.cargar_informacion(archivo_hospital)
+
+    os.system("pause")
+    while True:
+        os.system("cls")
+        print("***** Menú Principal HOSPITAL UDENAR *****\n")
+        print("1. Menú Pacientes")
+        print("2. Menú Médicos y Enfermeras")
+        print("3. Menú Servicios")
+        print("4. Menu Farmacia")
+        print("5. Ver Personas")
+        print("6. Ver Servicios")
+        print("\n7. Guardar y Salir")
+        print("0. Salir")
+
+        opcion = input("Ingrese la opción: ")
+
+        if opcion == "1":
+            menu_pacientes(hospital)
+
+        elif opcion == "2":
+            menu_medicos_enfermeras(hospital)
+
+        elif opcion == "3":
+            menu_servicios(hospital)
+
+        elif opcion== "4":
+            menu_farmacia()
+        elif opcion == "5":
+            print("\n***** Lista de Personas *****")
+            for persona in hospital.personas:
+                if isinstance(persona, Paciente):
+                    print(f"Paciente - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}")
+                elif isinstance(persona, Medico):
+                    print(f"Médico - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}, Especialidad: {persona.especialidad}")
+                elif isinstance(persona, Enfermera):
+                    print(f"Enfermera - Nombre: {persona.nombre}, ID: {persona.numero_identificacion}, Área: {persona.area}")
+            os.system("pause")
+
+        elif opcion == "6":
+            print("\n***** Lista de Servicios *****")
+            for servicio in hospital.servicios:
+                print(f"Servicio - Nombre: {servicio.nombre}, Costo: ${servicio.costo:.2f}")
+            os.system("pause")
+
+        elif opcion == "7":
+            # Guardar información y salir del programa principal
+            hospital.guardar_informacion(archivo_hospital)
+            print("Información guardada exitosamente. Saliendo del programa.")
+            break
+
+        elif opcion == "0":
+            print("Saliendo del programa.")
+            break
+        else:
+            print("Opción no válida. Intente de nuevo.")
+
+def menu_farmacia():
+    global farmacia_creada
+    farmacia = FARMACIA([],[])
+    try:
+        with open("farmacia.pickle","rb") as f:
+            farmacia=pickle.load(f)
+    except FileNotFoundError:
+        if not farmacia_creada:
+            print("Recuerde crear un producto")
+            os.system("pause")
+        else:
+            print("La farmacia aun no ha sido creada")
+            os.system("pause")
+    while True:
+        try:
+            os.system('cls')
+            print('FARMACIA UDENAR')
+            print('---------------------------------')
+            print('   1. Crear farmacia')
+            print('   2. Manejo productos')
+            print('')
+            print('   3. SALIR')
+            print('--------------------------------')
+            opcion =int(input('Elija una opción: '))
+            match opcion:
+                case 1:
+                    if not farmacia_creada:
+                        farmacia = crear_farmacia()
+                        farmacia_creada=True
+                        os.system("pause")
+                    else:
+                        print('Ya ha sido creada la farmacia')
+                        os.system("pause")
+                case 2:
+                    if farmacia_creada==True:
+                        manejo_productos(farmacia)
+                    else:
+                        print('Debe crear la farmacia antes de continuar')
+                        os.system("pause")
+                     
+                case 3:
+                    print('Volviendo... ')
+                    os.system("pause")
+                    break
+                case other: 
+                    print('Ha digitado una opción invalida ')
+                    os.system("pause")
+        except ValueError:
+            print('Digitacion incorrecta, intentelo de nuevo')
+
+def manejo_productos(farmacia):
+    while True:
+        try:
+            os.system('cls')
+            print('MANEJO PRODUCTOS')
+            print('---------------------------------')
+            print('   1. Crear producto')
+            print('   2. Mostrar producto ')
+            print('   3. Agregar a inventario ')
+            print('')
+            print('   4. SALIR')
+            print('--------------------------------')
+            opcion =int(input('Elija una opción: '))
+            match opcion:
+                case 1:
+                    farmacia.registrar_producto()
+                case 2:
+                    farmacia.mostrar_productos() 
+                    os.system("pause")
+                case 3:
+                    farmacia.pedir_producto()
+                case 4:
+                    print('Volviendo... ')
+                    os.system("pause")
+                    break
+                case other: 
+                    print('Ha digitado una opción invalida ')
+                    os.system("pause")
+        except ValueError:
+            print('Digitacion incorrecta, intentelo de nuevo')
+
+
+farmacia_creada=False
+def crear_farmacia():
+    global farmacia_creada
+    farmacia=FARMACIA([],[])
+    farmacia.registrar_producto()
+    with open("farmacia.pickle","wb") as f:
+        pickle.dump(farmacia,f)
+    return farmacia
+
+if __name__ == "__main__":
+    menu_principal()
